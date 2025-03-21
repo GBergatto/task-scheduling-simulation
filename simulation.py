@@ -1,22 +1,20 @@
 import random
 import simpy
 import simulation_parameters as sp
+from typing import Callable
 
 
 class Scheduler:
-    def __init__(self, env, num_servers, algorithm):
+    def __init__(self, env: simpy.Environment, num_servers: int, algorithm: Callable[['Scheduler'], simpy.Resource]):
         self.env = env
         self.servers = [simpy.Resource(env, capacity=1) for _ in range(num_servers)]
         self.current_server = 0
-        
-        if not callable(algorithm):
-            raise ValueError("Algorithm must be a callable method.")
-        
-        # reference to the algorithm to use for scheduling
         self.algorithm = algorithm
 
     def schedule(self):
-        return self.algorithm(self)
+        server : simpy.Resource = self.algorithm(self)
+        sid = self.servers.index(server)
+        return sid, server
 
     def round_robin(self):
         server = self.servers[self.current_server]
@@ -36,13 +34,12 @@ class Scheduler:
 def task(env, task_id, task_scheduler):
     arrival_time = env.now
     task_duration = random.uniform(sp.TASK_DURATION_MIN, sp.TASK_DURATION_MAX)
-    server = task_scheduler.schedule()
+    server_id, server = task_scheduler.schedule()
 
     with server.request() as req:
         yield req  # wait for server
         waited_time = env.now - arrival_time
-        # TODO: find a way to identify the server assigned to each task
-        print(f"Task {task_id} started on Server {server} at {env.now:.2f} (Waited {waited_time:.2f})")
+        print(f"Task {task_id} started on Server {server_id} at {env.now:.2f} (Waited {waited_time:.2f})")
         yield env.timeout(task_duration) # wait for task execution
         print(f"Task {task_id} finished at {env.now:.2f}")
 
