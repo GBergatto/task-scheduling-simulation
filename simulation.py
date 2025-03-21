@@ -1,12 +1,7 @@
-import simpy
 import random
+import simpy
+import simulation_parameters as sp
 
-# Simulation parameters
-N_SERVERS = 2  # Number of servers
-ARRIVAL_RATE = 1.0  # Average arrival rate (lambda) for Poisson process
-TASK_DURATION_MIN = 2  # Minimum task processing time
-TASK_DURATION_MAX = 5  # Maximum task processing time
-SIM_TIME = 10  # Total simulation time
 
 class Scheduler:
     def __init__(self, env, num_servers, algorithm):
@@ -40,7 +35,7 @@ class Scheduler:
 
 def task(env, task_id, task_scheduler):
     arrival_time = env.now
-    task_duration = random.uniform(TASK_DURATION_MIN, TASK_DURATION_MAX)
+    task_duration = random.uniform(sp.TASK_DURATION_MIN, sp.TASK_DURATION_MAX)
     server = task_scheduler.schedule()
 
     with server.request() as req:
@@ -56,16 +51,16 @@ def task_queue(env, task_scheduler):
     """Generate tasks according to a given random distribution"""
     task_id = 0
     while True:
-        yield env.timeout(random.expovariate(ARRIVAL_RATE))  # Poisson arrivals
+        yield env.timeout(random.expovariate(sp.ARRIVAL_RATE))  # Poisson arrivals
         env.process(task(env, task_id, task_scheduler))
         task_id += 1
 
 
 def main():
     env = simpy.Environment()
-    scheduler = Scheduler(env, N_SERVERS, Scheduler.least_load)
+    scheduler = Scheduler(env, sp.N_SERVERS, Scheduler.least_load)
     env.process(task_queue(env, scheduler))
-    env.run(until=SIM_TIME)
+    env.run(until=sp.SIM_TIME)
 
 
 if __name__ == "__main__":
