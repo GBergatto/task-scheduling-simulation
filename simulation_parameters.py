@@ -1,9 +1,10 @@
 from simulation import Scheduler
 
-SIM_TIME = 10  # Total simulation time
+SIM_TIME = 50  # Total simulation time
 
 N_SERVERS = 2  # Number of servers
-CAPACITY = 2 # Number of task that can be executed simultaneously by a server
+# Capacity = number of task that can be executed simultaneously by a server
+CAPACITIES = [2*(i+1) for i in range(N_SERVERS)]
 LB_ALGORITHM = Scheduler.least_connections  # Load balancing algorithm
 OVERHEAD_LEAST_LOAD = 2
 OVERHEAD_LEAST_CONNECTIONS = 1

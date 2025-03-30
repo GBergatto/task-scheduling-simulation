@@ -6,9 +6,9 @@ from typing import Callable, Generator
 
 
 class Scheduler:
-    def __init__(self, env: simpy.Environment, num_servers: int, capacity: int, algorithm: Callable[['Scheduler'], simpy.Resource]) -> None:
+    def __init__(self, env: simpy.Environment, num_servers: int, capacities: list[int], algorithm: Callable[['Scheduler'], simpy.Resource]) -> None:
         self.env = env
-        self.servers = [simpy.Resource(env, capacity=capacity) for _ in range(num_servers)]
+        self.servers = [simpy.Resource(env, capacity=capacities[i]) for i in range(num_servers)]
         self.loads = [0.0 for _ in range(num_servers)]
         self.current_server = 0
         self.algorithm = algorithm
@@ -80,8 +80,7 @@ def task_queue(env: simpy.Environment, task_scheduler: Scheduler, monitor: Simul
 
 def main() -> None:
     env = simpy.Environment()
-    # TODO: support non-homogeneous servers (list of capacities)
-    scheduler = Scheduler(env, sp.N_SERVERS, sp.CAPACITY, sp.LB_ALGORITHM)
+    scheduler = Scheduler(env, sp.N_SERVERS, sp.CAPACITIES, sp.LB_ALGORITHM)
     monitor = SimulationMonitor(sp.SIM_TIME, sp.N_SERVERS)
 
     env.process(task_queue(env, scheduler, monitor))
