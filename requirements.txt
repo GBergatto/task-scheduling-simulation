@@ -1,0 +1,2 @@
+matplotlib==3.10.1
+simpy==4.1.1
