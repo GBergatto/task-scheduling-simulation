@@ -42,7 +42,7 @@ def task(env: simpy.Environment, task_id: int, task_scheduler: Scheduler, monito
 
     # save load and size of queues after the task has been scheduled
     monitor.loads_over_time.append((env.now, task_scheduler.loads.copy()))
-    monitor.queue_lenghts_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
+    monitor.queue_lengths_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
 
     # simulate cost of sending load and connection information
     if task_scheduler.algorithm == task_scheduler.least_load:
@@ -65,8 +65,9 @@ def task(env: simpy.Environment, task_id: int, task_scheduler: Scheduler, monito
         task_scheduler.loads[server_id] -= task_duration
 
         # save load and size of queues after the task has finished
+        monitor.finished_task_counter += 1
         monitor.loads_over_time.append((env.now, task_scheduler.loads.copy()))
-        monitor.queue_lenghts_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
+        monitor.queue_lengths_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
 
 
 def task_queue(env: simpy.Environment, task_scheduler: Scheduler, monitor: SimulationMonitor) -> Generator:
@@ -81,7 +82,7 @@ def task_queue(env: simpy.Environment, task_scheduler: Scheduler, monitor: Simul
 def main() -> None:
     env = simpy.Environment()
     scheduler = Scheduler(env, sp.N_SERVERS, sp.CAPACITIES, sp.LB_ALGORITHM)
-    monitor = SimulationMonitor(sp.SIM_TIME, sp.N_SERVERS)
+    monitor = SimulationMonitor(sp.N_SERVERS)
 
     env.process(task_queue(env, scheduler, monitor))
     env.run(until=sp.SIM_TIME)
