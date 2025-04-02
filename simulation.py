@@ -28,27 +28,23 @@ class Scheduler:
         return random.choice(self.servers)
 
     def least_load(self) -> simpy.Resource:
-        sid = self.loads.index(min(self.loads))
+        load_per_core = [self.loads[i] / sp.CAPACITIES[i] for i in range(len(self.loads))]
+        sid = load_per_core.index(min(load_per_core))
         return self.servers[sid]
 
     def least_connections(self) -> simpy.Resource:
-        return min(self.servers, key=lambda s: s.count + len(s.queue))
+        return min(self.servers, key=lambda s: (s.count + len(s.queue)) / sp.CAPACITIES[self.servers.index(s)])
 
 
 def task(env: simpy.Environment, task_id: int, task_scheduler: Scheduler, monitor: SimulationMonitor) -> Generator:
     arrival_time = env.now
     task_duration = random.uniform(sp.TASK_DURATION_MIN, sp.TASK_DURATION_MAX)
     server_id, server = task_scheduler.schedule(task_duration)
+    # TODO: yield computation time
 
-    # save load and size of queues after the task has been scheduled
-    monitor.loads_over_time.append((env.now, task_scheduler.loads.copy()))
+    # save load (per core) and size of queues after the task has been scheduled
+    monitor.loads_over_time.append((env.now, [task_scheduler.loads[i] / sp.CAPACITIES[i] for i in range(len(task_scheduler.loads))]))
     monitor.queue_lengths_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
-
-    # simulate cost of sending load and connection information
-    if task_scheduler.algorithm == task_scheduler.least_load:
-        yield env.timeout(sp.OVERHEAD_LEAST_LOAD)
-    elif task_scheduler.algorithm == task_scheduler.least_connections:
-        yield env.timeout(sp.OVERHEAD_LEAST_CONNECTIONS)
 
     with server.request() as req:
         yield req  # wait for server
@@ -64,9 +60,15 @@ def task(env: simpy.Environment, task_id: int, task_scheduler: Scheduler, monito
         # so when a long task is about to finish, the load still seems very high
         task_scheduler.loads[server_id] -= task_duration
 
-        # save load and size of queues after the task has finished
+        # simulate cost of sending load and connection information
+        if task_scheduler.algorithm == task_scheduler.least_load:
+            yield env.timeout(sp.OVERHEAD_LEAST_LOAD)
+        elif task_scheduler.algorithm == task_scheduler.least_connections:
+            yield env.timeout(sp.OVERHEAD_LEAST_CONNECTIONS)
+
+        # save load (per core) and size of queues after the task has finished
         monitor.finished_task_counter += 1
-        monitor.loads_over_time.append((env.now, task_scheduler.loads.copy()))
+        monitor.loads_over_time.append((env.now, [task_scheduler.loads[i] / sp.CAPACITIES[i] for i in range(len(task_scheduler.loads))]))
         monitor.queue_lengths_over_time.append((env.now, [len(s.queue) for s in task_scheduler.servers]))
 
 
@@ -86,7 +88,9 @@ def main() -> None:
 
     env.process(task_queue(env, scheduler, monitor))
     env.run(until=sp.SIM_TIME)
+
     monitor.print_stats()
+    monitor.plot_task_latency()
     monitor.plot_load_over_time()
     monitor.plot_queue_lengths_over_time()
 
