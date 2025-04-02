@@ -83,6 +83,17 @@ class SimulationMonitor():
             print(f"Total Var Load = {tot_var_loads:.3f}")
             print(f"Total Var Queue Length = {tot_var_qlens:.3f}")
 
+    def plot_task_latency(self):
+        plt.figure(figsize=(10, 5))
+        plt.plot(range(len(self.task_latencies)), self.task_latencies, label="Latency")
+
+        plt.xlabel("Task ID")
+        plt.ylabel("Latency")
+        plt.title("Task Latency Over Time")
+        plt.legend()
+        plt.grid(True)
+        plt.show()
+
     def plot_load_over_time(self):
         assert self.loads_over_time
 
