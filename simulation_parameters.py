@@ -1,15 +1,14 @@
-from simulation import Scheduler
 
-SIM_TIME = 50  # Total simulation time
+SIM_TIME = 50
 
-N_SERVERS = 2  # Number of servers
-# Capacity = number of task that can be executed simultaneously by a server
-CAPACITIES = [2*(i+1) for i in range(N_SERVERS)]
-LB_ALGORITHM = Scheduler.least_connections  # Load balancing algorithm
-OVERHEAD_LEAST_LOAD = 2
-OVERHEAD_LEAST_CONNECTIONS = 1
+N_SERVERS = 2
+CAPACITIES = [2*(i+1) for i in range(N_SERVERS)] 
 
-ARRIVAL_RATE = 1.0  # Average arrival rate (lambda) for Poisson process
-TASK_DURATION_MIN = 2  # Minimum task processing time
-TASK_DURATION_MAX = 5  # Maximum task processing time
+LB_ALGORITHM = "least_connections" 
+OVERHEAD_LEAST_LOAD = 1
+OVERHEAD_LEAST_CONNECTIONS = 2
 
+ARRIVAL_RATE = 1.5
+TASK_DURATION_MIN = 3
+TASK_DURATION_MAX = 6
+    

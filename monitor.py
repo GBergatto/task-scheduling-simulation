@@ -1,13 +1,17 @@
 import matplotlib.pyplot as plt
 
 
-class SimulationMonitor():
+class SimulationMonitor:
     def __init__(self, n_servers: int) -> None:
         self.n_servers = n_servers
         self.finished_task_counter = 0
         self.task_latencies: list[float] = []
-        self.loads_over_time: list[tuple[float, list[float]]] = [(0, [0 for _ in range(n_servers)])]
-        self.queue_lengths_over_time: list[tuple[float, list[int]]] = [(0, [0 for _ in range(n_servers)])]
+        self.loads_over_time: list[tuple[float, list[float]]] = [
+            (0, [0 for _ in range(n_servers)])
+        ]
+        self.queue_lengths_over_time: list[tuple[float, list[int]]] = [
+            (0, [0 for _ in range(n_servers)])
+        ]
 
     def print_stats(self):
         assert len(self.task_latencies) > 0
@@ -22,7 +26,6 @@ class SimulationMonitor():
         var_loads: list[float] = [0.0] * self.n_servers
         var_qlens: list[float] = [0.0] * self.n_servers
 
-        # compute time-weighted average load for each server
         for i in range(1, num_samples):
             t1, _ = self.loads_over_time[i - 1]
             t2, load = self.loads_over_time[i]
@@ -32,7 +35,6 @@ class SimulationMonitor():
         total_time_load = self.loads_over_time[-1][0] - self.loads_over_time[0][0]
         avg_loads = [load / total_time_load for load in avg_loads]
 
-        # compute time-weighted variance of load for each server
         for i in range(1, num_samples):
             t1, _ = self.loads_over_time[i - 1]
             t2, load = self.loads_over_time[i]
@@ -41,18 +43,17 @@ class SimulationMonitor():
                 var_loads[j] += ((load[j] - avg_loads[j]) ** 2) * dt
 
         var_loads = [var / total_time_load for var in var_loads]
-
-        # compute time-weighted average queue length for each server
         for i in range(1, num_samples):
             t1, _ = self.loads_over_time[i - 1]
             t2, qlen = self.loads_over_time[i]
             for j in range(self.n_servers):
-                avg_loads[j] += qlen[j] * (t2 - t1)
+                avg_qlens[j] += qlen[j] * (t2 - t1)
 
-        total_time_qlen = self.queue_lengths_over_time[-1][0] - self.queue_lengths_over_time[0][0]
+        total_time_qlen = (
+            self.queue_lengths_over_time[-1][0] - self.queue_lengths_over_time[0][0]
+        )
         avg_qlens = [ql / total_time_qlen for ql in avg_qlens]
 
-        # compute time-weighted variance of queue length for each server
         for i in range(1, num_samples):
             t1, _ = self.queue_lengths_over_time[i - 1]
             t2, qlen = self.queue_lengths_over_time[i]
@@ -62,28 +63,32 @@ class SimulationMonitor():
 
         var_qlens = [var / total_time_qlen for var in var_qlens]
 
-        print(f"\nTotal number of tasks executed {self.finished_task_counter}")
-        print(f"Average Task Latency: {avg_latency:.3f}")
+        result = f"\nTotal number of tasks executed {self.finished_task_counter}\n"
+        result += f"Average Task Latency: {avg_latency:.3f}\n"
         for s in range(self.n_servers):
-            print(f"Server {s}:")
-            print(f"   Avg Load = {avg_loads[s]:.3f}, Avg Queue Length = {avg_qlens[s]:.3f}")
-            print(f"   Var Load = {var_loads[s]:.3f}, Var Queue Length = {var_qlens[s]:.3f}")
-        print()
+            result += f"Server {s}:\n"
+            result += f"   Avg Load = {avg_loads[s]:.3f}, Avg Queue Length = {avg_qlens[s]:.3f}\n"
+            result += f"   Var Load = {var_loads[s]:.3f}, Var Queue Length = {var_qlens[s]:.3f}\n"
+        result += "\n"
 
-        # compute averages of load and queue length across all servers
         tot_avg_loads = sum(avg_loads) / len(avg_loads)
         tot_avg_qlens = sum(avg_qlens) / len(avg_qlens)
-        print(f"Total Avg Load = {tot_avg_loads:.3f}")
-        print(f"Total Avg Queue Length = {tot_avg_qlens:.3f}")
+        result += f"Total Avg Load = {tot_avg_loads:.3f}\n"
+        result += f"Total Avg Queue Length = {tot_avg_qlens:.3f}\n"
 
         if self.n_servers > 1:
-            # compute variances of average load and queue length across servers
-            tot_var_loads = sum((avg_loads[s]-tot_avg_loads)**2 for s in range(self.n_servers)) / (self.n_servers-1)
-            tot_var_qlens = sum((avg_qlens[s]-tot_avg_qlens)**2 for s in range(self.n_servers)) / (self.n_servers-1)
-            print(f"Total Var Load = {tot_var_loads:.3f}")
-            print(f"Total Var Queue Length = {tot_var_qlens:.3f}")
+            tot_var_loads = sum(
+                (avg_loads[s] - tot_avg_loads) ** 2 for s in range(self.n_servers)
+            ) / (self.n_servers - 1)
+            tot_var_qlens = sum(
+                (avg_qlens[s] - tot_avg_qlens) ** 2 for s in range(self.n_servers)
+            ) / (self.n_servers - 1)
+            result += f"Total Var Load = {tot_var_loads:.3f}\n"
+            result += f"Total Var Queue Length = {tot_var_qlens:.3f}\n"
 
-    def plot_task_latency(self):
+        return result
+
+    def plot_task_latency(self, save_path=None):
         plt.figure(figsize=(10, 5))
         plt.plot(range(len(self.task_latencies)), self.task_latencies, label="Latency")
 
@@ -92,9 +97,12 @@ class SimulationMonitor():
         plt.title("Task Latency Over Time")
         plt.legend()
         plt.grid(True)
-        plt.show()
 
-    def plot_load_over_time(self):
+        if save_path:
+            plt.savefig(f"{save_path}/task_latency.png")  # Save the plot
+        # plt.show()
+
+    def plot_load_over_time(self, save_path=None):
         assert self.loads_over_time
 
         timestamps, loads = zip(*self.loads_over_time)
@@ -110,9 +118,12 @@ class SimulationMonitor():
         plt.title("Server Load Over Time")
         plt.legend()
         plt.grid(True)
-        plt.show()
 
-    def plot_queue_lengths_over_time(self):
+        if save_path:
+            plt.savefig(f"{save_path}/load.png")  # Save the plot
+        # plt.show()
+
+    def plot_queue_lengths_over_time(self, save_path=None):
         assert self.loads_over_time
 
         timestamps, lengths = zip(*self.queue_lengths_over_time)
@@ -128,5 +139,7 @@ class SimulationMonitor():
         plt.title("Server Queue Length Over Time")
         plt.legend()
         plt.grid(True)
-        plt.show()
 
+        if save_path:
+            plt.savefig(f"{save_path}/queue.png")  # Save the plot
+        # plt.show()

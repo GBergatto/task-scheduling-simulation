@@ -3,6 +3,43 @@ import simpy
 import simulation_parameters as sp
 from monitor import SimulationMonitor
 from typing import Callable, Generator
+import itertools
+import os
+import subprocess
+import shutil
+
+
+def generate_simulation_parameters(
+    lb_algorithm, overhead, arrival_rate, task_duration_min, task_duration_max
+):
+    """Generate simulation_parameters.py dynamically."""
+    content = f"""
+SIM_TIME = 50
+
+N_SERVERS = 2
+CAPACITIES = [2*(i+1) for i in range(N_SERVERS)] 
+
+LB_ALGORITHM = "{lb_algorithm}" 
+OVERHEAD_LEAST_LOAD = {overhead[0]}
+OVERHEAD_LEAST_CONNECTIONS = {overhead[1]}
+
+ARRIVAL_RATE = {arrival_rate}
+TASK_DURATION_MIN = {task_duration_min}
+TASK_DURATION_MAX = {task_duration_max}
+    """
+    with open("simulation_parameters.py", "w") as f:
+        f.write(content)
+
+
+def clear_directory(directory):
+    """Clear the contents of a directory."""
+    if os.path.exists(directory):
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            if os.path.isdir(file_path):
+                shutil.rmtree(file_path)  # Remove subdirectories
+            else:
+                os.remove(file_path)  # Remove files
 
 
 class Scheduler:
@@ -81,20 +118,65 @@ def task_queue(env: simpy.Environment, task_scheduler: Scheduler, monitor: Simul
         task_id += 1
 
 
-def main() -> None:
+def run(image_save_path):
+    """Run the simulation script."""
     env = simpy.Environment()
-    scheduler = Scheduler(env, sp.N_SERVERS, sp.CAPACITIES, sp.LB_ALGORITHM)
+    lb_algorithm_method = getattr(Scheduler, sp.LB_ALGORITHM)
+    scheduler = Scheduler(env, sp.N_SERVERS, sp.CAPACITIES, lb_algorithm_method)
     monitor = SimulationMonitor(sp.N_SERVERS)
 
     env.process(task_queue(env, scheduler, monitor))
     env.run(until=sp.SIM_TIME)
 
-    monitor.print_stats()
-    monitor.plot_task_latency()
-    monitor.plot_load_over_time()
-    monitor.plot_queue_lengths_over_time()
+
+    log_output = monitor.print_stats()
+    monitor.plot_task_latency(image_save_path)
+    monitor.plot_load_over_time(image_save_path)
+    monitor.plot_queue_lengths_over_time(image_save_path)
+
+    print(log_output) 
+
+    return log_output  
 
 
 if __name__ == "__main__":
-    main()
+    lb_algorithms = [
+        "round_robin",
+        "random_allocation",
+        "least_load",
+        "least_connections",
+    ]
+    overhead_options = [(2, 1), (1, 2)]
+    arrival_rates = [0.5, 1.0, 1.5]
+    task_durations = [(2, 5), (3, 6)]
 
+    # Clear the logs and plots directories before starting
+    clear_directory("logs")
+    clear_directory("plots")
+
+    os.makedirs("logs", exist_ok=True)
+    os.makedirs("plots", exist_ok=True)
+
+    for lb_algorithm, overhead, arrival_rate, (task_min, task_max) in itertools.product(
+        lb_algorithms, overhead_options, arrival_rates, task_durations
+    ):
+        # Generate unique image save path based on simulation parameters
+        image_save_path = f"plots/{lb_algorithm}_{arrival_rate}_{task_min}_{task_max}"
+        os.makedirs(image_save_path, exist_ok=True)
+
+        # Generate simulation parameters dynamically
+        generate_simulation_parameters(
+            lb_algorithm, overhead, arrival_rate, task_min, task_max
+        )
+        # Run the simulation and capture the output
+        log_output = run(image_save_path)
+        # Save the log output to a file in the logs directory
+        with open(
+            f"logs/{lb_algorithm}_{arrival_rate}_{task_min}_{task_max}_log.txt", "w"
+        ) as f:
+            f.write(log_output)
+
+        print(
+            f"Simulation completed for {lb_algorithm} with ARRIVAL_RATE={arrival_rate}, "
+            f"TASK_DURATION=({task_min}, {task_max})"
+        )
