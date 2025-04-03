@@ -5,41 +5,39 @@ from monitor import SimulationMonitor
 from typing import Callable, Generator
 import itertools
 import os
-import subprocess
 import shutil
 
 
 def generate_simulation_parameters(
     lb_algorithm, overhead, arrival_rate, task_duration_min, task_duration_max
 ):
-    """Generate simulation_parameters.py dynamically."""
-    content = f"""
-SIM_TIME = 50
-
-N_SERVERS = 2
-CAPACITIES = [2*(i+1) for i in range(N_SERVERS)] 
-
-LB_ALGORITHM = "{lb_algorithm}" 
-OVERHEAD_LEAST_LOAD = {overhead[0]}
-OVERHEAD_LEAST_CONNECTIONS = {overhead[1]}
-
-ARRIVAL_RATE = {arrival_rate}
-TASK_DURATION_MIN = {task_duration_min}
-TASK_DURATION_MAX = {task_duration_max}
-    """
-    with open("simulation_parameters.py", "w") as f:
-        f.write(content)
+    file_path = "simulation_parameters.py"
+    with open(file_path, "r") as f:
+        lines = f.readlines()
+    updates = {
+        "LB_ALGORITHM": f'"{lb_algorithm}"',
+        "OVERHEAD_LEAST_LOAD": str(overhead[0]),
+        "OVERHEAD_LEAST_CONNECTIONS": str(overhead[1]),
+        "ARRIVAL_RATE": str(arrival_rate),
+        "TASK_DURATION_MIN": str(task_duration_min),
+        "TASK_DURATION_MAX": str(task_duration_max),
+    }
+    for i, line in enumerate(lines):
+        for key, value in updates.items():
+            if line.startswith(key):
+                lines[i] = f"{key} = {value}\n"
+    with open(file_path, "w") as f:
+        f.writelines(lines)
 
 
 def clear_directory(directory):
-    """Clear the contents of a directory."""
     if os.path.exists(directory):
         for filename in os.listdir(directory):
             file_path = os.path.join(directory, filename)
             if os.path.isdir(file_path):
-                shutil.rmtree(file_path)  # Remove subdirectories
+                shutil.rmtree(file_path) 
             else:
-                os.remove(file_path)  # Remove files
+                os.remove(file_path)  
 
 
 class Scheduler:
@@ -149,8 +147,8 @@ if __name__ == "__main__":
     overhead_options = [(2, 1), (1, 2)]
     arrival_rates = [0.5, 1.0, 1.5]
     task_durations = [(2, 5), (3, 6)]
-
-    # Clear the logs and plots directories before starting
+    
+    # delete all the logs generated before
     clear_directory("logs")
     clear_directory("plots")
 
@@ -160,17 +158,12 @@ if __name__ == "__main__":
     for lb_algorithm, overhead, arrival_rate, (task_min, task_max) in itertools.product(
         lb_algorithms, overhead_options, arrival_rates, task_durations
     ):
-        # Generate unique image save path based on simulation parameters
         image_save_path = f"plots/{lb_algorithm}_{arrival_rate}_{task_min}_{task_max}"
         os.makedirs(image_save_path, exist_ok=True)
-
-        # Generate simulation parameters dynamically
         generate_simulation_parameters(
             lb_algorithm, overhead, arrival_rate, task_min, task_max
         )
-        # Run the simulation and capture the output
-        log_output = run(image_save_path)
-        # Save the log output to a file in the logs directory
+        log_output = run(image_save_path)y
         with open(
             f"logs/{lb_algorithm}_{arrival_rate}_{task_min}_{task_max}_log.txt", "w"
         ) as f:

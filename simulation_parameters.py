@@ -4,7 +4,7 @@ SIM_TIME = 50
 N_SERVERS = 2
 CAPACITIES = [2*(i+1) for i in range(N_SERVERS)] 
 
-LB_ALGORITHM = "least_connections" 
+LB_ALGORITHM = "least_connections"
 OVERHEAD_LEAST_LOAD = 1
 OVERHEAD_LEAST_CONNECTIONS = 2
 
