@@ -6,7 +6,8 @@ pip install -r requirements.txt
 ```
 
 Run the simulation
-modify the parameters in simulation.py
+
+!! modify the parameters in simulation.py
 &&
 ```bash
 python simulation.py
