@@ -163,7 +163,7 @@ if __name__ == "__main__":
         generate_simulation_parameters(
             lb_algorithm, overhead, arrival_rate, task_min, task_max
         )
-        log_output = run(image_save_path)y
+        log_output = run(image_save_path)
         with open(
             f"logs/{lb_algorithm}_{arrival_rate}_{task_min}_{task_max}_log.txt", "w"
         ) as f:
