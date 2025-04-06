@@ -5,12 +5,8 @@ Install the required Python modules
 pip install -r requirements.txt
 ```
 
-Run the simulation
-
-!! modify the parameters in simulation.py
-&&
+Define multiple scenarios in `scenarios.py` and run the simulations for all of them
 ```bash
-python simulation.py
+python runner.py
 ```
-The parameters to configure the simulation can be found in `simulation_parameters.py`.
 
