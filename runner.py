@@ -1,6 +1,7 @@
 from monitor import SimulationMonitor
 from config import SimulationConfig
 from simulation import Scheduler, task_queue
+import random
 import simpy
 import scenarios as sn
 import os
@@ -19,9 +20,10 @@ def clear_directory(directory):
 
 def run(config: SimulationConfig, image_save_path):
     """Run a simulation with the given set of parameters"""
+    random.seed(11)
     env = simpy.Environment()
     scheduler = Scheduler(config, env)
-    monitor = SimulationMonitor(config.n_servers)
+    monitor = SimulationMonitor(config)
 
     env.process(task_queue(config, env, scheduler, monitor))
     env.run(until=sn.SIM_TIME)
@@ -37,15 +39,12 @@ def run(config: SimulationConfig, image_save_path):
 
 
 if __name__ == "__main__":
-    
-    clear_directory("logs")
-    clear_directory("plots")
-    os.makedirs("logs", exist_ok=True)
-    os.makedirs("plots", exist_ok=True)
+    clear_directory("output")
+    os.makedirs("output", exist_ok=True)
 
-    for n, cap, rate, (dmin, dmax) in zip(sn.N_SERVERS, sn.CAPACITIES, sn.ARRIVAL_RATES, sn.TASK_DURATIONS):
+    for i, (n, cap, rate, (dmin, dmax)) in enumerate(zip(sn.N_SERVERS, sn.CAPACITIES, sn.ARRIVAL_RATES, sn.TASK_DURATIONS)):
         for algo in sn.ALGORITHMS:
-            image_save_path = f"plots/{algo}_{rate}_{dmin}_{dmax}"
+            image_save_path = f"output/scenario_{i+1:02d}/{algo}"
             os.makedirs(image_save_path, exist_ok=True)
 
             config = SimulationConfig(
@@ -60,7 +59,7 @@ if __name__ == "__main__":
             )
 
             log_output = run(config, image_save_path)
-            with open(f"logs/{algo}_{rate}_{dmin}_{dmax}_log.txt", "w") as f:
+            with open(f"{image_save_path}/log.txt", "w") as f:
                 f.write(log_output)
 
             print(f"Simulation completed for {algo} with ARRIVAL_RATE={rate}, TASK_DURATION=({dmin}, {dmax})\n")

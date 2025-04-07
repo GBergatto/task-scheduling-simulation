@@ -52,7 +52,7 @@ def task(config: SimulationConfig, env: simpy.Environment, task_id: int, task_sc
         waited_time = env.now - arrival_time
         monitor.task_latencies.append(waited_time)
 
-        print(f"Task {task_id} ({task_duration:.3}) started on Server {server_id} at {env.now:.2f} (Waited {waited_time:.2f})")
+        print(f"Task {task_id} ({task_duration:.3}) arr={arrival_time:.2f}, start={env.now:.2f}, server={server_id}, wait={waited_time:.2f}")
 
         yield env.timeout(task_duration) # wait for task execution
         print(f"Task {task_id} finished at {env.now:.2f}")

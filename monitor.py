@@ -1,16 +1,18 @@
 import matplotlib.pyplot as plt
+from config import SimulationConfig
 
 
 class SimulationMonitor:
-    def __init__(self, n_servers: int) -> None:
-        self.n_servers = n_servers
+    def __init__(self, config: SimulationConfig) -> None:
+        self.algorith = config.lb_algorithm
+        self.n_servers = config.n_servers
         self.finished_task_counter = 0
         self.task_latencies: list[float] = []
         self.loads_over_time: list[tuple[float, list[float]]] = [
-            (0, [0 for _ in range(n_servers)])
+            (0, [0 for _ in range(self.n_servers)])
         ]
         self.queue_lengths_over_time: list[tuple[float, list[int]]] = [
-            (0, [0 for _ in range(n_servers)])
+            (0, [0 for _ in range(self.n_servers)])
         ]
 
     def print_stats(self):
@@ -90,17 +92,20 @@ class SimulationMonitor:
 
     def plot_task_latency(self, save_path=None):
         plt.figure(figsize=(10, 5))
-        plt.plot(range(len(self.task_latencies)), self.task_latencies, label="Latency")
+        plt.plot(range(len(self.task_latencies)), self.task_latencies, label="Latency", linewidth=0.7)
+
+        avg_latency = sum(self.task_latencies) / len(self.task_latencies)
+        plt.axhline(avg_latency, color='red', linestyle='--', label=f"Avg Latency: {avg_latency:.2f}")
 
         plt.xlabel("Task ID")
         plt.ylabel("Latency")
-        plt.title("Task Latency Over Time")
+        plt.title(f"Task Latency Over Time ({self.algorith})")
         plt.legend()
         plt.grid(True)
 
         if save_path:
             plt.savefig(f"{save_path}/task_latency.png")  # Save the plot
-        # plt.show()
+        plt.close()
 
     def plot_load_over_time(self, save_path=None):
         assert self.loads_over_time
@@ -111,17 +116,17 @@ class SimulationMonitor:
         plt.figure(figsize=(10, 5))
         for i in range(num_servers):
             server_loads = [load[i] for load in loads]
-            plt.plot(timestamps, server_loads, label=f"Server {i}")
+            plt.plot(timestamps, server_loads, label=f"Server {i}", linewidth=0.7)
 
         plt.xlabel("Time")
         plt.ylabel("Load")
-        plt.title("Server Load Over Time")
+        plt.title(f"Server Load Over Time ({self.algorith})")
         plt.legend()
         plt.grid(True)
 
         if save_path:
             plt.savefig(f"{save_path}/load.png")  # Save the plot
-        # plt.show()
+        plt.close()
 
     def plot_queue_lengths_over_time(self, save_path=None):
         assert self.loads_over_time
@@ -132,14 +137,15 @@ class SimulationMonitor:
         plt.figure(figsize=(10, 5))
         for i in range(num_servers):
             server_queue_lengths = [length[i] for length in lengths]
-            plt.plot(timestamps, server_queue_lengths, label=f"Server {i}")
+            plt.plot(timestamps, server_queue_lengths, label=f"Server {i}", linewidth=0.7)
 
         plt.xlabel("Time")
         plt.ylabel("Queue length")
-        plt.title("Server Queue Length Over Time")
+        plt.title(f"Server Queue Length Over Time ({self.algorith})")
         plt.legend()
         plt.grid(True)
 
         if save_path:
             plt.savefig(f"{save_path}/queue.png")  # Save the plot
-        # plt.show()
+        plt.close()
+
