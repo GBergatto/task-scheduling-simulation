@@ -18,6 +18,7 @@ class SimulationMonitor:
     def print_stats(self):
         assert len(self.task_latencies) > 0
         avg_latency = sum(self.task_latencies) / len(self.task_latencies)
+        var_latency = sum((lat - avg_latency) ** 2 for lat in self.task_latencies) / len(self.task_latencies)
 
         assert len(self.loads_over_time) == len(self.queue_lengths_over_time)
         num_samples = len(self.loads_over_time)
@@ -65,8 +66,9 @@ class SimulationMonitor:
 
         var_qlens = [var / total_time_qlen for var in var_qlens]
 
-        result = f"\nTotal number of tasks executed {self.finished_task_counter}\n"
-        result += f"Average Task Latency: {avg_latency:.3f}\n"
+        result = f"\nTotal number of tasks executed = {self.finished_task_counter}\n"
+        result += f"Average Task Latency = {avg_latency:.3f}\n"
+        result += f"Variance Task Latency = {var_latency:.3f}\n"
         for s in range(self.n_servers):
             result += f"Server {s}:\n"
             result += f"   Avg Load = {avg_loads[s]:.3f}, Avg Queue Length = {avg_qlens[s]:.3f}\n"
