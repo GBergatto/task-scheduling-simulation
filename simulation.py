@@ -41,7 +41,9 @@ def task(config: SimulationConfig, env: simpy.Environment, task_id: int, task_sc
     arrival_time = env.now
     task_duration = random.uniform(config.task_duration_min, config.task_duration_max)
     server_id, server = task_scheduler.schedule(task_duration)
-    # TODO: yield computation time
+
+    # simulate computation time of the scheduling algorithm
+    yield env.timeout(config.computation_overhead)
 
     # save load (per core) and size of queues after the task has been scheduled
     monitor.loads_over_time.append((env.now, [task_scheduler.loads[i] / config.capacities[i] for i in range(len(task_scheduler.loads))]))
@@ -62,10 +64,7 @@ def task(config: SimulationConfig, env: simpy.Environment, task_id: int, task_sc
         task_scheduler.loads[server_id] -= task_duration
 
         # simulate cost of sending load and connection information
-        if task_scheduler.algorithm == task_scheduler.least_load:
-            yield env.timeout(config.overhead_least_load)
-        elif task_scheduler.algorithm == task_scheduler.least_connections:
-            yield env.timeout(config.overhead_least_connections)
+        yield env.timeout(config.state_overhead)
 
         # save load (per core) and size of queues after the task has finished
         monitor.finished_task_counter += 1

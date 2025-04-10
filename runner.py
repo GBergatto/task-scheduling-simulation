@@ -42,25 +42,37 @@ if __name__ == "__main__":
     clear_directory("output")
     os.makedirs("output", exist_ok=True)
 
-    for i, (n, cap, rate, (dmin, dmax)) in enumerate(zip(sn.N_SERVERS, sn.CAPACITIES, sn.ARRIVAL_RATES, sn.TASK_DURATIONS)):
-        for algo in sn.ALGORITHMS:
-            image_save_path = f"output/scenario_{i+1:02d}/{algo}"
-            os.makedirs(image_save_path, exist_ok=True)
+    assert len(sn.N_SERVERS) == len(sn.CAPACITIES) == len(sn.ARRIVAL_RATES) == \
+       len(sn.TASK_DURATIONS) == len(sn.STATIC_COMPUTATIONS) == \
+       len(sn.STATE_AWARE_COMPUTATIONS) == len(sn.STATE_OVERHEADS), "Mismatched lengths in scenarios config"
 
-            config = SimulationConfig(
-                n_servers=n,
-                capacities=cap,
-                lb_algorithm=algo,
-                overhead_least_load=sn.OVERHEADS[0],
-                overhead_least_connections=sn.OVERHEADS[1],
-                arrival_rate=rate,
-                task_duration_min=dmin,
-                task_duration_max=dmax
-            )
+    for i, (n, cap, rate, (dmin, dmax), static_co, state_aware_co, (so_min, so_max)) in enumerate(
+            zip(sn.N_SERVERS, sn.CAPACITIES, sn.ARRIVAL_RATES, sn.TASK_DURATIONS,
+                sn.STATIC_COMPUTATIONS, sn.STATE_AWARE_COMPUTATIONS, sn.STATE_OVERHEADS)):
 
-            log_output = run(config, image_save_path)
-            with open(f"{image_save_path}/log.txt", "w") as f:
-                f.write(log_output)
+        for state_overhead in range(so_min, so_max+1):
+            for algo in sn.ALGORITHMS:
+                image_save_path = f"output/scenario_{i+1:02d}/{state_overhead}_{algo}"
+                os.makedirs(image_save_path, exist_ok=True)
 
-            print(f"Simulation completed for {algo} with ARRIVAL_RATE={rate}, TASK_DURATION=({dmin}, {dmax})\n")
+                computation_overhead = static_co
+                if "least" in algo:
+                    computation_overhead = state_aware_co
+
+                config = SimulationConfig(
+                    n_servers=n,
+                    capacities=cap,
+                    lb_algorithm=algo,
+                    computation_overhead=computation_overhead,
+                    state_overhead=state_overhead/10 if "least" in algo else 0,
+                    arrival_rate=rate,
+                    task_duration_min=dmin,
+                    task_duration_max=dmax
+                )
+
+                log_output = run(config, image_save_path)
+                with open(f"{image_save_path}/log.txt", "w") as f:
+                    f.write(log_output)
+
+                print(f"Simulation completed for {algo} with ARRIVAL_RATE={rate}, TASK_DURATION=({dmin}, {dmax})\n")
 
