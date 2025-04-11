@@ -47,8 +47,8 @@ class SimulationMonitor:
 
         var_loads = [var / total_time_load for var in var_loads]
         for i in range(1, num_samples):
-            t1, _ = self.loads_over_time[i - 1]
-            t2, qlen = self.loads_over_time[i]
+            t1, _ = self.queue_lengths_over_time[i - 1]
+            t2, qlen = self.queue_lengths_over_time[i]
             for j in range(self.n_servers):
                 avg_qlens[j] += qlen[j] * (t2 - t1)
 
