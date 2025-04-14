@@ -46,11 +46,11 @@ if __name__ == "__main__":
        len(sn.TASK_DURATIONS) == len(sn.STATIC_COMPUTATIONS) == \
        len(sn.STATE_AWARE_COMPUTATIONS) == len(sn.STATE_OVERHEADS), "Mismatched lengths in scenarios config"
 
-    for i, (n, cap, rate, (dmin, dmax), static_co, state_aware_co, (so_min, so_max)) in enumerate(
+    for i, (n, cap, rate, (dmin, dmax), static_co, state_aware_co, network_overheads) in enumerate(
             zip(sn.N_SERVERS, sn.CAPACITIES, sn.ARRIVAL_RATES, sn.TASK_DURATIONS,
                 sn.STATIC_COMPUTATIONS, sn.STATE_AWARE_COMPUTATIONS, sn.STATE_OVERHEADS)):
 
-        for state_overhead in range(so_min, so_max+1):
+        for state_overhead in network_overheads:
             for algo in sn.ALGORITHMS:
                 image_save_path = f"output/scenario_{i+1:02d}/{state_overhead}_{algo}"
                 os.makedirs(image_save_path, exist_ok=True)
@@ -64,7 +64,7 @@ if __name__ == "__main__":
                     capacities=cap,
                     lb_algorithm=algo,
                     computation_overhead=computation_overhead,
-                    state_overhead=state_overhead/10 if "least" in algo else 0,
+                    state_overhead=state_overhead if "least" in algo else 0,
                     arrival_rate=rate,
                     task_duration_min=dmin,
                     task_duration_max=dmax

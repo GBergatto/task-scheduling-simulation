@@ -1,6 +1,6 @@
 SIM_TIME = 1000
 
-ALGORITHMS = [
+ALGORITHMS: list[str] = [
         "round_robin",
         "random_allocation",
         "least_load",
@@ -8,13 +8,13 @@ ALGORITHMS = [
         ]
 
 
-N_SERVERS = []
-CAPACITIES = []
-ARRIVAL_RATES = []
-TASK_DURATIONS = []
-STATIC_COMPUTATIONS = []
-STATE_AWARE_COMPUTATIONS = []
-STATE_OVERHEADS = []
+N_SERVERS: list[int] = []
+CAPACITIES: list[list[int]] = []
+ARRIVAL_RATES: list[int] = []
+TASK_DURATIONS: list[tuple[int, int]] = []
+STATIC_COMPUTATIONS: list[float] = []
+STATE_AWARE_COMPUTATIONS: list[float] = []
+STATE_OVERHEADS: list[list[float]] = []
 
 
 # scenario 1: baseline -> compare algorithms
@@ -24,7 +24,7 @@ ARRIVAL_RATES.append(1)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenario 2: heterogeneous servers
 N_SERVERS.append(6)
@@ -33,7 +33,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenarios 3-4: few long tasks vs many short tasks (with same duration range)
 # scenario 3
@@ -43,7 +43,7 @@ ARRIVAL_RATES.append(1)
 TASK_DURATIONS.append((9,15))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 4
 N_SERVERS.append(12)
 CAPACITIES.append([1 for _ in range(12)])
@@ -51,7 +51,7 @@ ARRIVAL_RATES.append(3)
 TASK_DURATIONS.append((1,7))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenarios 5-6: same computing power in different configurations (6x1 vs 3x2)
 # scenario 5
@@ -61,7 +61,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((1,5))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 6
 N_SERVERS.append(3)
 CAPACITIES.append([2 for _ in range(6)])
@@ -69,7 +69,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((1,5))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenarios 7-12: more servers x cores configurations (12x1 vs 6x2)
 # scenario 7
@@ -79,7 +79,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 8
 N_SERVERS.append(6)
 CAPACITIES.append([2 for _ in range(12)])
@@ -87,7 +87,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 9
 N_SERVERS.append(4)
 CAPACITIES.append([3 for _ in range(12)])
@@ -95,7 +95,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 10
 N_SERVERS.append(3)
 CAPACITIES.append([4 for _ in range(12)])
@@ -103,7 +103,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 11
 N_SERVERS.append(2)
 CAPACITIES.append([6 for _ in range(12)])
@@ -111,7 +111,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenarios 12-13: task duration range
 # scenario 12: large range
@@ -121,7 +121,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((1,11))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 # scenario 13: narrow range
 N_SERVERS.append(12)
 CAPACITIES.append([1 for _ in range(12)])
@@ -129,7 +129,7 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((5,7))
 STATIC_COMPUTATIONS.append(0)
 STATE_AWARE_COMPUTATIONS.append(0)
-STATE_OVERHEADS.append((0,0))
+STATE_OVERHEADS.append([0])
 
 # scenario 14: test effect of overhead on algorithms
 N_SERVERS.append(12)
@@ -138,5 +138,5 @@ ARRIVAL_RATES.append(2)
 TASK_DURATIONS.append((2,10))
 STATIC_COMPUTATIONS.append(0.1)
 STATE_AWARE_COMPUTATIONS.append(0.3)
-STATE_OVERHEADS.append((0,10))
+STATE_OVERHEADS.append([0, 2.5, 5, 7.5, 10, 50, 60])
 
